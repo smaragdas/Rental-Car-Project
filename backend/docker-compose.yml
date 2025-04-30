@@ -1,0 +1,27 @@
+services:
+  automr_postgres:
+    image: postgres:14
+    container_name: automr_postgres
+    environment:
+      POSTGRES_DB: automr_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your_password_here
+    ports:
+      - "5432:5432"
+    volumes:
+      - automr_postgres_data:/var/lib/postgresql/data
+
+  automr_backend:
+    build: .
+    container_name: automr_backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://automr_postgres:5432/automr_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: your_password_here
+    depends_on:
+      - automr_postgres
+
+volumes:
+  automr_postgres_data:
