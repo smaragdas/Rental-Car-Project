@@ -32,6 +32,7 @@ export default function Header() {
           >
             <option value="en">English</option>
             <option value="gr">Greek</option>
+            <option value="bg">Bulgarian</option>
           </select>
           <div className="pointer-events-none absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">▼</div>
         </div>
