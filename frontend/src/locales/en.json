@@ -1,0 +1,113 @@
+{
+    "hero": {
+      "slogan": "Drive in Style. Rent with Confidence"
+    },
+    "button": {
+      "book": "Book Now"
+    },
+    "nav": {
+      "home": "Home",
+      "contact": "Contact"
+    },
+    "contact": {
+      "title": "Contact Us!",
+      "fillForm": "Fill The Form Out",
+      "letUsKnow": "Let us know",
+      "name": "Name*",
+      "email": "Email*",
+      "message": "Message*",
+      "submit": "Submit Now"
+    },
+    "policy": {
+      "lateTitle": "Late Return Policy:",
+      "late": "Delays beyond the agreed time may result in additional charges.",
+      "cleanTitle": "Cleanliness:",
+      "clean": "Excessive dirt or interior damage will result in a cleaning or repair fee.",
+      "minRentalTitle": "Minimum Rental Period:",
+      "minRental": "The minimum rental period is 2 days.",
+      "fuelTitle": "Fuel Policy:",
+      "fuel": "Vehicles are delivered with a full tank and must be returned full. Fuel charges will apply otherwise.",
+      "smokePetsTitle": "Smoking & Pets:",
+      "smokePets": "Smoking is not allowed inside vehicles. Pets are allowed only in carriers.",
+      "trafficTitle": "Traffic Violations:",
+      "traffic": "Renters are responsible for any fines or violations during the rental period."
+    },
+    "carHighlight": {
+  "title": "Our Masterpiece.",
+  "subtitle": "Mercedes-Benz E200",
+  "description": "Timeless elegance meets modern comfort. The E200 blends a sleek exterior with a refined interior featuring dual widescreen displays and ambient lighting. Powered by a smooth 2.0L turbo engine and 9-speed automatic, it offers a quiet, confident ride with smart safety features. Ideal for stylish city drives or comfortable long journeys.",
+  "rating": "299+ People Rated"
+},
+"faq": {
+  "label": "FAQ",
+  "items": [
+    {
+      "id": "01",
+      "question": "Do you provide airport pick-up and drop-off?",
+      "answer": "Yes! We offer professional airport transfer services to and from your terminal, ensuring a seamless and stylish start or end to your journey."
+    },
+    {
+      "id": "02",
+      "question": "Is the car available for weddings and special events?",
+      "answer": "Absolutely. The E200 is a popular choice for weddings, photo shoots, and VIP events. For more info please contact us directly."
+    },
+    {
+      "id": "03",
+      "question": "Can I rent the car for everyday use or business trips?",
+      "answer": "Yes. Whether you’re heading to a meeting or taking a road trip, our E200 rental provides luxury and advanced safety for all kinds of journeys."
+    },
+    {
+      "id": "04",
+      "question": "What documents do I need to rent the car?",
+      "answer": "You will need a valid driver’s license, a passport or ID, and a credit card. A €500 deposit will be pre-authorized and refunded if no damage occurs."
+    }
+  ]
+},
+"footer": {
+  "connect": "Stay connected",
+  "backToTop": "Back to top"
+},
+"premium": {
+  "description": "At AutoMR, we are committed to delivering a premium car rental experience with clarity and trust. Please read the general terms carefully before renting a vehicle through our service."
+},
+  "premiumPlan": {
+    "title": "Premium Plan",
+    "subtitle": "Arrive in Style with the Mercedes-Benz E200",
+    "price": "50€ /per day",
+    "description": "Experience comfort, elegance, and convenience with our premium car rental services, featuring the luxurious 2020 Mercedes-Benz E200 – the perfect companion for any occasion.",
+    "included": "What’s included",
+    "features1": [
+      "Airport Pick-Up & Drop-Off",
+      "Dual widescreen infotainment and digital cockpit",
+      "Rear climate controls and ample legroom"
+    ],
+    "features2": [
+      "Full leather interior with ambient lighting",
+      "Smooth 9-speed automatic transmission",
+      "Premium sound and whisper-quiet cabin"
+    ]
+  }
+,
+"terms": {
+  "title": "AutoMR – General Rental Terms & Conditions",
+  "fullInsurance": "Full Insurance (CDW) is included.",
+  "airportPickup": "Airport Pickup is available upon request.",
+  "licenseTitle": "Valid Driver’s License",
+  "licenseDesc": "Accepted: Greek, EU or International license issued 3+ years prior.",
+  "cardTitle": "Credit Card",
+  "cardDesc": "Required for deposit. Cash may be accepted upon approval.",
+  "passportTitle": "Valid Passport or National ID",
+  "passportDesc": "Documents must match primary driver’s name.",
+  "reservationTitle": "Reservation & Deposit Policy",
+  "reservationDesc": "Deposit confirms booking. Balance is due at pickup.",
+  "ageTitle": "Driver Age Requirement",
+  "ageDesc": "Minimum age is 23 years."
+}
+
+
+
+
+
+
+  }
+  
