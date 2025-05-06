@@ -8,10 +8,15 @@ export default function Header() {
   const { t, i18n } = useTranslation();
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
-  const changeLanguage = (e) => i18n.changeLanguage(e.target.value);
+
+  const changeLanguage = (e) => {
+    i18n.changeLanguage(e.target.value);
+    setMenuOpen(false); // ✅ Closes mobile menu after language change
+  };
 
   return (
     <header className="fixed top-0 left-0 w-full z-50 bg-transparent backdrop-blur-md py-5 px-6 flex justify-between items-center border-b border-white/10 transition-all">
+      {/* Logo */}
       <h1 className="text-3xl font-extrabold text-primary tracking-tight">AutoMR</h1>
 
       {/* Desktop Nav */}
@@ -24,6 +29,8 @@ export default function Header() {
             {t('nav.contact')}
           </Link>
         </nav>
+
+        {/* Language Selector */}
         <div className="relative">
           <select
             onChange={changeLanguage}
@@ -48,10 +55,18 @@ export default function Header() {
       {/* Mobile Menu */}
       {menuOpen && (
         <div className="absolute top-full left-0 w-full bg-[#1D3A6C] text-white shadow-md flex flex-col items-start px-6 py-4 gap-4 md:hidden transition-all">
-          <Link to="/" className="text-lg font-semibold tracking-wide hover:underline" onClick={() => setMenuOpen(false)}>
+          <Link
+            to="/"
+            className="text-lg font-semibold tracking-wide hover:underline"
+            onClick={() => setMenuOpen(false)}
+          >
             {t('nav.home')}
           </Link>
-          <Link to="/contact" className="text-lg font-semibold tracking-wide hover:underline" onClick={() => setMenuOpen(false)}>
+          <Link
+            to="/contact"
+            className="text-lg font-semibold tracking-wide hover:underline"
+            onClick={() => setMenuOpen(false)}
+          >
             {t('nav.contact')}
           </Link>
           <select
@@ -61,6 +76,7 @@ export default function Header() {
           >
             <option value="en">English</option>
             <option value="gr">Greek</option>
+            <option value="bg">Bulgarian</option>
           </select>
         </div>
       )}
