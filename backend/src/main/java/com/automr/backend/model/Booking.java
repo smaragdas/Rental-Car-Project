@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-
 import com.automr.backend.validation.ValidPhone;
 
 @Entity
@@ -35,7 +34,11 @@ public class Booking {
     @Min(value = 24, message = "Driver must be at least 24 years old")
     private Integer age;
 
+    @Column(nullable = true)
     private Integer paymentAmount;
+
+    // ← newly added field
+    private String pickupLocation;
 
     private String pickupTime;
 
@@ -50,7 +53,7 @@ public class Booking {
 
     public Booking() {}
 
-    // Custom validation logic
+    /** Ensure at least a 4-day rental by default */
     public boolean isValidRentalPeriod() {
         if (startDate != null && endDate != null) {
             long days = ChronoUnit.DAYS.between(startDate, endDate);
@@ -119,6 +122,14 @@ public class Booking {
 
     public void setPaymentAmount(Integer paymentAmount) {
         this.paymentAmount = paymentAmount;
+    }
+
+    public String getPickupLocation() {
+        return pickupLocation;
+    }
+
+    public void setPickupLocation(String pickupLocation) {
+        this.pickupLocation = pickupLocation;
     }
 
     public String getPickupTime() {

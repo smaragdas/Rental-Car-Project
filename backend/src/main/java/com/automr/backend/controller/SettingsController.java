@@ -19,15 +19,13 @@ public class SettingsController {
         return ResponseEntity.ok(settingsService.getSettings());
     }
 
-    @PutMapping("/daily-rate")
-    public ResponseEntity<String> updateDailyRate(@RequestParam int amount) {
-        settingsService.updateDailyRate(amount);
-        return ResponseEntity.ok("Daily rate updated to €" + amount);
-    }
-
-    @PutMapping("/minimum-days")
-    public ResponseEntity<String> updateMinimumDays(@RequestParam int days) {
-        settingsService.updateMinimumRentalDays(days);
-        return ResponseEntity.ok("Minimum rental days updated to " + days);
+    @PutMapping
+    public ResponseEntity<Settings> updateSettings(@RequestBody Settings updatedSettings) {
+        // applies your two‐step update logic
+        settingsService.updateDailyRate(updatedSettings.getDailyRate());
+        settingsService.updateMinimumRentalDays(updatedSettings.getMinimumRentalDays());
+        settingsService.updateFleetSize(updatedSettings.getFleetSize());
+        // then return the refreshed singleton
+        return ResponseEntity.ok(settingsService.getSettings());
     }
 }

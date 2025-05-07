@@ -16,7 +16,7 @@ public class PhoneValidator implements ConstraintValidator<ValidPhone, String> {
             return false;
         }
         try {
-            PhoneNumber number = phoneUtil.parse(value, null); // null = auto-detect region
+            PhoneNumber number = phoneUtil.parse(value, "GR");
             return phoneUtil.isValidNumber(number);
         } catch (NumberParseException e) {
             return false;

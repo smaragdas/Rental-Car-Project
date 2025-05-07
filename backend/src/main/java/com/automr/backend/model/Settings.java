@@ -13,12 +13,15 @@ public class Settings {
 
     private int minimumRentalDays;
 
+    private int fleetSize;
+
     public Settings() {
     }
 
-    public Settings(int dailyRate, int minimumRentalDays) {
+    public Settings(int dailyRate, int minimumRentalDays, int fleetSize) {
         this.dailyRate = dailyRate;
         this.minimumRentalDays = minimumRentalDays;
+        this.fleetSize = fleetSize;
     }
 
     // Getters and Setters
@@ -41,5 +44,13 @@ public class Settings {
 
     public void setMinimumRentalDays(int minimumRentalDays) {
         this.minimumRentalDays = minimumRentalDays;
+    }
+
+    public int getFleetSize() { 
+        return fleetSize; 
+    }
+
+    public void setFleetSize(int fleetSize) { 
+        this.fleetSize = fleetSize; 
     }
 }
