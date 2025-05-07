@@ -1,116 +1,99 @@
-# 🚗 AutoMR – Premium Car Rental Platform
 
-**AutoMR** is a professional-grade car rental web application built for a premium user experience. Designed and developed by **Konstantinos Smaragdas** and **Ioannis Xypteras**, the platform allows seamless car booking, admin management, and secure Stripe payments.
+# 🚗 AutoMR - Mercedes Car Rental Platform
 
----
-
-## 🌐 Live Stack Overview
-
-| Layer      | Tech                                      |
-|------------|-------------------------------------------|
-| Frontend   | React + Vite + TailwindCSS                |
-| Backend    | Spring Boot (Java 21) + JWT Auth          |
-| Database   | PostgreSQL 14 (Dockerized)                |
-| Payments   | Stripe Checkout API                       |
-| Deployment | Docker + Docker Compose                   |
+A full-stack car rental web application enabling users to browse, book, and manage Mercedes car rentals, built by:
+- [Konstantinos Smaragdas](https://www.linkedin.com/in/konstantinos-smaragdas/) ([GitHub](https://github.com/smaragdas))
+- [Ioannis Xypteras](https://www.linkedin.com/in/ioannisxypteras/) ([GitHub](https://github.com/JohnXyp))
 
 ---
 
-## 🚀 Features
+## 📦 Tech Stack
 
-### 🖥 Frontend
-- Fully responsive UI
-- Smooth animations & scroll effects
-- Stripe payment integration
-- Multilingual (EN/GR)
-- Admin-only dashboard access
+### Frontend
+- React + Vite
+- TailwindCSS
+- React Router
+- Stripe.js
+- i18n (internationalization)
 
-### 🧠 Backend
-- RESTful API with role-based access (JWT secured)
-- Admin credentials via environment
-- Stripe session creation
-- Email notifications (Gmail SMTP)
+### Backend
+- Spring Boot (Java 21)
+- PostgreSQL
+- Stripe API Integration
+- Spring Security + JWT
+- Gmail SMTP for emails
 
-### 🔐 Admin Login (Environment-controlled)
-| Username | Password |
-|----------|----------|
-| `admin`  | `admin123` (change in `.env`) |
+### DevOps / Deployment
+- Docker & Docker Compose
+- GitHub Actions (optional)
+- Env-based config (.env)
 
 ---
 
-## ⚙️ Quick Start
+## 📸 Features
+
+### Users
+- Book a car with Stripe or in-person payment
+- View availability based on car fleet size
+- Multi-language support (EN/GR)
+- Email confirmations
+
+### Admins
+- Manage all bookings
+- Modify or delete reservations
+- Change settings (car availability, pricing)
+- Reset admin credentials securely
+
+---
+
+## ⚙️ How to Run (Local Dev)
+
+### Prerequisites
+- Docker + Docker Compose
+- Java 21
+- Node.js (for local frontend build)
 
 ```bash
-git clone https://github.com/JohnXyp/Rental-Car-Project.git
+# Clone project
+git clone https://github.com/smaragdas/Rental-Car-Project.git
 cd Rental-Car-Project
 
-# Add your secrets to the .env file (see example below)
-docker-compose up --build
+# Copy and configure the .env file
+cp .env.example .env
+# Add secrets: Stripe key, Gmail credentials, etc.
+
+# Build & run all services
+docker compose up --build
 ```
 
-### 📄 Example `.env`
-```env
-POSTGRES_DB=automr_db
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=yourpassword
-
-SPRING_DATASOURCE_URL=jdbc:postgresql://automr_postgres:5432/automr_db
-SPRING_DATASOURCE_USERNAME=postgres
-SPRING_DATASOURCE_PASSWORD=yourpassword
-
-STRIPE_SECRET_KEY=sk_test_...
-VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
-
-SPRING_MAIL_USERNAME=your_email@gmail.com
-SPRING_MAIL_PASSWORD=your_app_password
-
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=admin123
-
-VITE_API_BASE_URL=http://localhost:8080/api
-```
+App will be available at: [http://localhost](http://localhost)
 
 ---
 
-## 📂 Project Structure
+## 📁 Folder Structure
 
 ```
 Rental-Car-Project/
-├── backend/      # Spring Boot API
-├── frontend/     # React App
-├── .env          # Environment variables
-└── docker-compose.yml
+├── backend/         # Spring Boot application
+│   └── src/...
+├── frontend/        # React + Tailwind frontend
+│   └── src/...
+├── docker-compose.yml
+└── .env             # Secrets & config
 ```
 
 ---
 
-## 🧪 Dev Endpoints
+## 🔐 Notes on Secrets
 
-- 🔓 `/api/bookings` (GET, POST) – Public
-- 🔐 `/api/bookings/{id}` (PUT, DELETE) – Admin only
-- 🔐 `/api/settings` (GET/PUT) – Admin only
-- 💳 `/api/stripe/checkout-session` – Stripe
-
-Swagger: [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)
+All credentials (Stripe, Gmail, DB, etc.) are stored in `.env` and injected into containers securely. Avoid committing real secrets to GitHub. GitHub will block commits with secrets like Stripe API keys.
 
 ---
 
-## 👨‍💻 Meet the Developers
+## ✨ Authors
 
-### 🧑‍💻 Konstantinos Smaragdas  
-- GitHub: [github.com/smaragdas](https://github.com/smaragdas)  
-- LinkedIn: [linkedin.com/in/konstantinos-smaragdas](https://www.linkedin.com/in/konstantinos-smaragdas/)
+- **Konstantinos Smaragdas**  
+  [LinkedIn](https://www.linkedin.com/in/konstantinos-smaragdas/) • [GitHub](https://github.com/smaragdas)
 
-### 🧑‍💻 Ioannis Xypteras  
-- GitHub: [github.com/JohnXyp](https://github.com/JohnXyp)  
-- LinkedIn: [linkedin.com/in/ioannisxypteras](https://www.linkedin.com/in/ioannisxypteras/)
-
----
-
-## 📜 License
-
-MIT – Use it, improve it, build on top of it.
-
----
-
-> Built with ❤️ by Kostas & Ioannis.
+- **Ioannis Xypteras**  
+  [LinkedIn](https://www.linkedin.com/in/ioannisxypteras/) • [GitHub](https://github.com/JohnXyp)
