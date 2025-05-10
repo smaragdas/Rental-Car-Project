@@ -15,13 +15,13 @@ export function SettingsProvider({ children }) {
         .catch(err => {
             console.error('Failed to load settings', err);
             // Fallback defaults if the API call fails
-            setSettings({ dailyRate: 50, minimumRentalDays: 2, fleetSize: 3 });
+            setSettings({ dailyRate: 50, minimumRentalDays: 3, fleetSize: 3 });
         });
     }, []);
 
     // Show a simple loading state until settings are ready
     if (settings === null) {
-        return <p>Loading settings…</p>;
+        return <p>Loading settings…</p>
     }
 
     return (

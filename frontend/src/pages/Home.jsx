@@ -76,7 +76,7 @@ export default function Home() {
         <PremiumExplanation />
       </motion.section>
 
-      <motion.section initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} viewport={{ once: true }}>
+      <motion.section className="dark-bg" initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} viewport={{ once: true }}>
         <PoliciesGrid />
       </motion.section>
 

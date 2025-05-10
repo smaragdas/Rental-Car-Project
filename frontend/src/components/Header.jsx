@@ -1,31 +1,64 @@
+// src/components/Header.jsx
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
 import { HiMenu, HiX } from 'react-icons/hi';
 import { useTranslation } from 'react-i18next';
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isDarkBg, setIsDarkBg] = useState(false);
   const { t, i18n } = useTranslation();
 
-  const toggleMenu = () => setMenuOpen(!menuOpen);
+  // Toggle mobile menu
+  const toggleMenu = () => setMenuOpen((o) => !o);
 
+  // Language change
   const changeLanguage = (e) => {
     i18n.changeLanguage(e.target.value);
-    setMenuOpen(false); // ✅ Closes mobile menu after language change
+    setMenuOpen(false);
   };
 
+  // Observe dark-bg sections
+  useEffect(() => {
+    const sections = document.querySelectorAll('.dark-bg');
+    const visible = new Set();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) visible.add(entry.target);
+          else visible.delete(entry.target);
+        });
+        setIsDarkBg(visible.size > 0);
+      },
+      { rootMargin: '-50% 0px -50% 0px' }
+    );
+    sections.forEach((sec) => observer.observe(sec));
+    return () => observer.disconnect();
+  }, []);
+
+  // Header classes: always transparent bg; text color toggles
+  const baseClass = 'fixed top-0 left-0 w-full z-50 backdrop-blur-md py-5 px-6 flex justify-between items-center transition-colors duration-300 bg-transparent';
+
   return (
-    <header className="fixed top-0 left-0 w-full z-50 bg-transparent backdrop-blur-md py-5 px-6 flex justify-between items-center border-b border-white/10 transition-all">
+    <header className={baseClass}>
       {/* Logo */}
-      <h1 className="text-3xl font-extrabold text-primary tracking-tight">AutoMR</h1>
+      <Link to="/" className={`text-3xl font-extrabold tracking-tight transition-colors ${isDarkBg ? 'text-white' : 'text-black'} hover:opacity-80 cursor-pointer`}>
+        AutoMR
+      </Link>
 
       {/* Desktop Nav */}
       <div className="hidden md:flex items-center gap-8">
-        <nav className="flex gap-6 text-lg font-bold text-neutral-900">
-          <Link to="/" className="hover:text-primary transition-colors text-xl tracking-wide">
+        <nav className="flex gap-6 text-lg font-bold">
+          <Link
+            to="/"
+            className={`text-xl tracking-wide transition-colors ${isDarkBg ? 'text-white hover:text-gray-300' : 'text-black hover:text-gray-700'}`}
+          >
             {t('nav.home')}
           </Link>
-          <Link to="/contact" className="hover:text-primary transition-colors text-xl tracking-wide">
+          <Link
+            to="/contact"
+            className={`text-xl tracking-wide transition-colors ${isDarkBg ? 'text-white hover:text-gray-300' : 'text-black hover:text-gray-700'}`}
+          >
             {t('nav.contact')}
           </Link>
         </nav>
@@ -34,20 +67,27 @@ export default function Header() {
         <div className="relative">
           <select
             onChange={changeLanguage}
-            className="appearance-none bg-white border border-gray-300 text-sm font-semibold rounded-md px-4 py-2 text-neutral-800 shadow-md focus:outline-none focus:ring-2 focus:ring-primary pr-8"
             defaultValue={i18n.language}
+            className={`appearance-none border rounded-md px-4 py-2 pr-8 text-sm font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-primary transition-colors ${
+              isDarkBg ? 'bg-black text-white border-gray-700' : 'bg-white text-black border-gray-300'
+            }`}
           >
             <option value="en">English</option>
             <option value="gr">Greek</option>
             <option value="bg">Bulgarian</option>
           </select>
-          <div className="pointer-events-none absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">▼</div>
+          <div className={`pointer-events-none absolute right-3 top-1/2 transform -translate-y-1/2 ${
+            isDarkBg ? 'text-gray-300' : 'text-gray-500'
+          }`}>▼</div>
         </div>
       </div>
 
       {/* Mobile Toggle */}
       <div className="md:hidden">
-        <button onClick={toggleMenu} className="text-3xl text-neutral-900">
+        <button
+          onClick={toggleMenu}
+          className={`text-3xl transition-colors ${isDarkBg ? 'text-white' : 'text-black'}`}
+        >
           {menuOpen ? <HiX /> : <HiMenu />}
         </button>
       </div>
@@ -71,8 +111,8 @@ export default function Header() {
           </Link>
           <select
             onChange={changeLanguage}
-            className="bg-white text-black border-none rounded-md px-4 py-2 w-full focus:outline-none"
             defaultValue={i18n.language}
+            className="bg-white text-black border-none rounded-md px-4 py-2 w-full focus:outline-none"
           >
             <option value="en">English</option>
             <option value="gr">Greek</option>

@@ -3,7 +3,18 @@
       "slogan": "Drive in Style. Rent with Confidence"
     },
     "button": {
-      "book": "Book Now"
+      "book": "Book Now",
+      "back": "Back"
+    },
+    "booking": {
+      "acceptTerms": "I accept the {{link}}",
+      "acceptTermsError": "You must accept the Terms & Conditions to proceed."
+    },
+      "cookies": {
+      "message": "We use cookies to improve your experience.",
+      "learnMore": "Learn more",
+      "acceptEssential": "Accept Essential",
+      "acceptAll": "Accept All"
     },
     "nav": {
       "home": "Home",
@@ -65,7 +76,9 @@
 },
 "footer": {
   "connect": "Stay connected",
-  "backToTop": "Back to top"
+  "backToTop": "Back to top",
+  "cookieSettings": "Cookie Settings",
+  "terms": "Terms & Conditions"
 },
 "premium": {
   "description": "At AutoMR, we are committed to delivering a premium car rental experience with clarity and trust. Please read the general terms carefully before renting a vehicle through our service."
@@ -91,7 +104,7 @@
 "terms": {
   "title": "AutoMR – General Rental Terms & Conditions",
   "fullInsurance": "Full Insurance (CDW) is included.",
-  "airportPickup": "Airport Pickup is available upon request.",
+  "airportPickup": "Pickup from every public transportation is available upon request.",
   "licenseTitle": "Valid Driver’s License",
   "licenseDesc": "Accepted: Greek, EU or International license issued 4+ years prior.",
   "cardTitle": "Credit Card",

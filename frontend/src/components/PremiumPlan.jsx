@@ -1,3 +1,4 @@
+// src/components/PremiumPlan.jsx
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -8,7 +9,10 @@ import heroBg from '../assets/hero.jpg';
 export default function PremiumPlan() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { dailyRate } = useSettings();
+  const settings = useSettings();
+
+  // Safely get daily rate with a fallback
+  const rate = settings?.dailyRate ?? 0;
 
   return (
     <section className="bg-white py-24 px-6 text-center">
@@ -40,13 +44,10 @@ export default function PremiumPlan() {
           />
           <div className="relative z-10 bg-black/60 backdrop-blur-sm rounded-2xl p-10 text-white text-center">
             <div className="mb-10">
--              <h3 className="text-4xl font-extrabold mb-2">
--                {t('premiumPlan.price')}
--              </h3>
-+              <h3 className="text-4xl font-extrabold mb-2">
-+                {t('premiumPlan.price', { dailyRate })}
-+              </h3>
-              <p className="text-gray-300 max-w-xl mx-auto text-sm leading-relaxed">
+              <h3 className="text-5xl font-extrabold mb-2">
+                {t('premiumPlan.price', { dailyRate: rate })}
+              </h3>
+              <p className="text-gray-300 max-w-xl mx-auto text-base leading-relaxed">
                 {t('premiumPlan.description')}
               </p>
             </div>
@@ -59,7 +60,7 @@ export default function PremiumPlan() {
               <ul className="space-y-2">
                 {t('premiumPlan.features1', { returnObjects: true }).map((item, i) => (
                   <li key={i} className="flex items-start gap-2">
-                    <span className="text-blue-500 text-lg">✔</span>
+                    <span className="text-blue-400 text-lg">✔</span>
                     <span>{item}</span>
                   </li>
                 ))}
@@ -67,7 +68,7 @@ export default function PremiumPlan() {
               <ul className="space-y-2">
                 {t('premiumPlan.features2', { returnObjects: true }).map((item, i) => (
                   <li key={i} className="flex items-start gap-2">
-                    <span className="text-blue-500 text-lg">✔</span>
+                    <span className="text-blue-400 text-lg">✔</span>
                     <span>{item}</span>
                   </li>
                 ))}
