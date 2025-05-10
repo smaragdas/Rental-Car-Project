@@ -59,7 +59,7 @@
     {
       "id": "04",
       "question": "What documents do I need to rent the car?",
-      "answer": "You will need a valid driver’s license, a passport or ID, and a credit card. A €500 deposit will be pre-authorized and refunded if no damage occurs."
+      "answer": "You will need a valid driver’s license, a passport or ID, and a credit card. A €800 deposit will be pre-authorized and refunded if no damage occurs."
     }
   ]
 },
@@ -93,7 +93,7 @@
   "fullInsurance": "Full Insurance (CDW) is included.",
   "airportPickup": "Airport Pickup is available upon request.",
   "licenseTitle": "Valid Driver’s License",
-  "licenseDesc": "Accepted: Greek, EU or International license issued 3+ years prior.",
+  "licenseDesc": "Accepted: Greek, EU or International license issued 4+ years prior.",
   "cardTitle": "Credit Card",
   "cardDesc": "Required for deposit. Cash may be accepted upon approval.",
   "passportTitle": "Valid Passport or National ID",
@@ -101,7 +101,7 @@
   "reservationTitle": "Reservation & Deposit Policy",
   "reservationDesc": "Deposit confirms booking. Balance is due at pickup.",
   "ageTitle": "Driver Age Requirement",
-  "ageDesc": "Minimum age is 23 years."
+  "ageDesc": "Minimum age is 24 years."
 }
   }
   
