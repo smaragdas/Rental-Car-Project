@@ -1,0 +1,59 @@
+services:
+  # ────────────────────────────────────────────────
+  # 1) Database
+  # ────────────────────────────────────────────────
+  automr_postgres:
+    image: postgres:14
+    container_name: automr_postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB:       ${POSTGRES_DB}
+      POSTGRES_USER:     ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - automr_postgres_data:/var/lib/postgresql/data
+
+  # ────────────────────────────────────────────────
+  # 2) Backend (Spring Boot)
+  # ────────────────────────────────────────────────
+  automr_backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: automr_backend
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL:      ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      STRIPE_API_SECRET:          ${STRIPE_SECRET_KEY}
+      SPRING_MAIL_USERNAME:       ${SPRING_MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD:       ${SPRING_MAIL_PASSWORD}
+      ADMIN_USERNAME:             ${ADMIN_USERNAME}
+      ADMIN_PASSWORD:             ${ADMIN_PASSWORD}
+    depends_on:
+      - automr_postgres
+
+  # ────────────────────────────────────────────────
+  # 3) Frontend (React + Vite + serve on port 80)
+  # ────────────────────────────────────────────────
+  automr_frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+        VITE_STRIPE_PUBLISHABLE_KEY: ${VITE_STRIPE_PUBLISHABLE_KEY}
+    container_name: automr_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - automr_backend
+volumes:
+  automr_postgres_data:

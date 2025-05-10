@@ -1,9 +1,11 @@
 package com.automr.backend.model;
 
+import com.automr.backend.validation.ValidPhone;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 
 import com.automr.backend.validation.ValidPhone;
 
@@ -14,9 +16,11 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @NotNull
     private LocalDate startDate;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @NotNull
     private LocalDate endDate;
 
@@ -35,7 +39,13 @@ public class Booking {
     @Min(value = 24, message = "Driver must be at least 24 years old")
     private Integer age;
 
+<<<<<<< HEAD
+=======
+    @Column(nullable = true)
+>>>>>>> f75c3fea7c71f3b4390d4e28c1757205d2af77cd
     private Integer paymentAmount;
+
+    private String pickupLocation;
 
     private String pickupTime;
 
@@ -44,10 +54,15 @@ public class Booking {
     private Boolean airportPickup;
 
     @Enumerated(EnumType.STRING)
+<<<<<<< HEAD
+=======
+    @Column(nullable = true, columnDefinition = "varchar(255) default 'CONFIRMED'")
+>>>>>>> f75c3fea7c71f3b4390d4e28c1757205d2af77cd
     private BookingStatus bookingStatus = BookingStatus.CONFIRMED;
 
     private String paymentIntentId;
 
+<<<<<<< HEAD
     public Booking() {}
 
     // Custom validation logic
@@ -57,9 +72,21 @@ public class Booking {
             return days >= 4;
         }
         return false;
+=======
+    @Column(nullable = false)
+    private String paymentStatus = "PENDING";
+
+    public Booking() {}
+
+    // ───── Validations ───────────────────────
+
+    @AssertTrue(message = "Start date must be today or in the future")
+    public boolean isStartDateValid() {
+        return startDate != null && !startDate.isBefore(LocalDate.now());
+>>>>>>> f75c3fea7c71f3b4390d4e28c1757205d2af77cd
     }
 
-    // --- Getters and Setters ---
+    // ───── Getters and Setters ───────────────
 
     public Long getId() {
         return id;
@@ -121,6 +148,14 @@ public class Booking {
         this.paymentAmount = paymentAmount;
     }
 
+    public String getPickupLocation() {
+        return pickupLocation;
+    }
+
+    public void setPickupLocation(String pickupLocation) {
+        this.pickupLocation = pickupLocation;
+    }
+
     public String getPickupTime() {
         return pickupTime;
     }
@@ -160,4 +195,15 @@ public class Booking {
     public void setPaymentIntentId(String paymentIntentId) {
         this.paymentIntentId = paymentIntentId;
     }
+<<<<<<< HEAD
+=======
+
+    public String getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    public void setPaymentStatus(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
+>>>>>>> f75c3fea7c71f3b4390d4e28c1757205d2af77cd
 }

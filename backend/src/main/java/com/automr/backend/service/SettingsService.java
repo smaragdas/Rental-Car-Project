@@ -4,6 +4,9 @@ import com.automr.backend.model.Settings;
 import com.automr.backend.repository.SettingsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.NoSuchElementException;
 
 @Service
 public class SettingsService {
@@ -11,25 +14,27 @@ public class SettingsService {
     @Autowired
     private SettingsRepository settingsRepository;
 
-    // Load settings (or default if not present)
+    private static final Long SETTINGS_ID = 1L;
+
+    /**
+     * Always returns the singleton settings row with ID = 1.
+     * Throws if not initialized.
+     */
+    @Transactional(readOnly = true)
     public Settings getSettings() {
-        return settingsRepository.findAll().stream()
-                .findFirst()
-                .orElseGet(() -> {
-                    Settings defaultSettings = new Settings(50, 4); // €50/day, 4-day minimum
-                    return settingsRepository.save(defaultSettings);
-                });
+        return settingsRepository.findById(SETTINGS_ID)
+            .orElseThrow(() -> new NoSuchElementException("Settings not initialized"));
     }
 
-    public void updateDailyRate(int newRate) {
-        Settings settings = getSettings();
-        settings.setDailyRate(newRate);
-        settingsRepository.save(settings);
-    }
-
-    public void updateMinimumRentalDays(int newMinDays) {
-        Settings settings = getSettings();
-        settings.setMinimumRentalDays(newMinDays);
-        settingsRepository.save(settings);
+    /**
+     * Update singleton settings (ID = 1).
+     */
+    @Transactional
+    public Settings updateSettings(Settings updated) {
+        Settings s = getSettings();
+        s.setDailyRate(updated.getDailyRate());
+        s.setMinimumRentalDays(updated.getMinimumRentalDays());
+        s.setFleetSize(updated.getFleetSize());
+        return settingsRepository.save(s);
     }
 }

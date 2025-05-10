@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Booking Confirmation</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; background-color: #f7f7f7; padding: 20px;">
+        <div style="background-color: #ffffff; padding: 20px; border-radius: 6px; max-width: 600px; margin: auto;">
+        <h2 style="color: #1D3A6C;">Booking Confirmation - AutoMR</h2>
+        <p>Dear <strong th:text="${fullName}">Full Name</strong>,</p>
+        <p>Your booking has been successfully confirmed:</p>
+
+        <ul>
+            <li><strong>Start Date:</strong> <span th:text="${startDate}">startDate</span></li>
+            <li><strong>End Date:</strong> <span th:text="${endDate}">endDate</span></li>
+            <li><strong>Days:</strong> <span th:text="${days}">0</span></li>
+            <li><strong>Total Cost:</strong> €<span th:text="${total}">0</span></li>
+            <li><strong>Status:</strong> <span th:text="${status}">CONFIRMED</span></li>
+        </ul>
+
+        <p th:if="${pickupLocation}">
+            <strong>Pickup Location:</strong> <span th:text="${pickupLocation}">N/A</span><br />
+            <strong>Pickup Time:</strong> <span th:text="${pickupTime}">N/A</span><br />
+            <strong>Dropoff Time:</strong> <span th:text="${dropoffTime}">N/A</span>
+        </p>
+
+        <hr style="margin: 20px 0;" />
+        <h3 style="color:#1D3A6C;">Rental Terms [&] Conditions</h3>
+        <ul style="line-height: 1.6;">
+            <li>You must present a <strong>valid ID or passport</strong> at the time of pickup.</li>
+            <li>Drivers must be <strong>at least 24 years old</strong> with a minimum of <strong>4 years of driving experience</strong>.</li>
+            <li>A <strong>valid driver’s license</strong> is required and will be checked upon vehicle delivery.</li>
+            <li>A <strong>credit card deposit of €800</strong> is required. This will be held during the rental and released after the return date if no issues arise.</li>
+        </ul>
+
+        <p>Thank you for choosing AutoMR. Drive safe!</p>
+        </div>
+    </body>
+</html>
