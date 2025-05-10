@@ -6,19 +6,20 @@ import { parseISO, eachDayOfInterval } from 'date-fns';
 
 import 'react-phone-number-input/style.css';
 import 'react-day-picker/dist/style.css';
-
 import publicAxios from '../lib/publicAxios';
 
 export default function Booking() {
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   const [settings, setSettings] = useState({
-    dailyRate: 0,
-    minimumRentalDays: 1,
+    dailyRate: 50,
+    minimumRentalDays: 3,
     fleetSize: 3
   });
 
   const [disabledDates, setDisabledDates] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     fullName: '',
     email: '',
@@ -45,18 +46,22 @@ export default function Booking() {
     publicAxios.get('/bookings')
       .then(res => {
         const counts = {};
-        res.data.forEach(b => {
-          eachDayOfInterval({
-            start: parseISO(b.startDate),
-            end: parseISO(b.endDate),
-          }).forEach(d => {
-            const key = d.toISOString().slice(0, 10);
-            counts[key] = (counts[key] || 0) + 1;
+        res.data
+          .filter(b => b.bookingStatus === 'CONFIRMED' || b.bookingStatus === 'PAID')
+          .forEach(b => {
+            eachDayOfInterval({
+              start: parseISO(b.startDate),
+              end: parseISO(b.endDate),
+            }).forEach(d => {
+              const key = d.toISOString().slice(0, 10);
+              counts[key] = (counts[key] || 0) + 1;
+            });
           });
-        });
+
         const full = Object.entries(counts)
           .filter(([, c]) => c >= settings.fleetSize)
           .map(([day]) => parseISO(day));
+
         setDisabledDates(full);
       })
       .catch(console.error);
@@ -66,14 +71,28 @@ export default function Booking() {
     setForm(f => ({ ...f, [field]: value }));
 
   const handleRangeSelect = (range) => {
+    setError('');
     const { from, to } = range || {};
-    if (from && (!to || +from === +to)) {
+    if (!from) return;
+
+    if (!to || +from === +to) {
+      if (disabledDates.some(d => +d === +from)) {
+        return setError('No cars available on that day.');
+      }
       handleChange('startDate', from);
       handleChange('endDate', from);
-    } else {
-      handleChange('startDate', from || null);
-      handleChange('endDate', to || null);
+      return;
     }
+
+    const interval = eachDayOfInterval({ start: from, end: to });
+    for (let d of interval) {
+      if (disabledDates.some(dd => +dd === +d)) {
+        return setError('Your range includes fully booked dates.');
+      }
+    }
+
+    handleChange('startDate', from);
+    handleChange('endDate', to);
   };
 
   const rentalDays = form.startDate && form.endDate
@@ -83,26 +102,44 @@ export default function Booking() {
   const handleSubmit = async e => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
-    const {
-      fullName, email, phone, age,
-      startDate, endDate, pickupOption
-    } = form;
+    if (!settings.minimumRentalDays) {
+      setLoading(false);
+      return setError('Settings not loaded yet. Please wait...');
+    }
 
+    const { fullName, email, phone, age, startDate, endDate, pickupOption } = form;
     if (!fullName || !email || !phone || !age || !startDate || !endDate) {
+      setLoading(false);
       return setError('All fields are required.');
     }
     if (!isValidPhoneNumber(phone)) {
+      setLoading(false);
       return setError('Invalid phone number.');
     }
     if (age < 24) {
+      setLoading(false);
       return setError('Driver must be at least 24 years old.');
     }
     if (rentalDays < settings.minimumRentalDays) {
+      setLoading(false);
       return setError(`Minimum rental is ${settings.minimumRentalDays} days.`);
     }
-    if (startDate < today) {
+
+    const selectedStart = new Date(startDate);
+    selectedStart.setHours(0, 0, 0, 0);
+    if (selectedStart < today) {
+      setLoading(false);
       return setError('Start date cannot be in the past.');
+    }
+
+    const interval = eachDayOfInterval({ start: startDate, end: endDate });
+    for (let day of interval) {
+      if (disabledDates.some(disabled => +disabled === +day)) {
+        setLoading(false);
+        return setError('One or more selected dates are no longer available.');
+      }
     }
 
     const payload = {
@@ -116,17 +153,22 @@ export default function Booking() {
       const bookingRes = await publicAxios.post('/bookings', payload);
       const booking = bookingRes.data;
 
+      if (booking.bookingStatus === 'PAID') {
+        setLoading(false);
+        return setError('This booking is already paid.');
+      }
+
       const stripeSessionRes = await publicAxios.post('/stripe/checkout-session', {
         amount: booking.paymentAmount * 100,
-        successUrl: window.location.origin + '/thank-you',
-        cancelUrl: window.location.origin + '/booking',
+        successUrl: window.location.origin + '/thank-you?status=paid',
+        cancelUrl: window.location.origin + '/booking?status=cancelled',
         metadata: { bookingId: booking.id.toString() }
       });
 
       window.location.href = stripeSessionRes.data.url;
     } catch (err) {
-      const msg = err.response?.data || err.message;
-      setError(msg);
+      setLoading(false);
+      setError(err.response?.data || err.message);
     }
   };
 
@@ -139,13 +181,11 @@ export default function Booking() {
         <div>
           <h2 className="text-4xl font-bold text-center mb-8">Booking Form</h2>
           {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
-
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
             <input type="text" placeholder="Full Name" value={form.fullName} onChange={e => handleChange('fullName', e.target.value)} className="border rounded p-3 w-full" />
             <input type="email" placeholder="Email" value={form.email} onChange={e => handleChange('email', e.target.value)} className="border rounded p-3 w-full" />
             <PhoneInput defaultCountry="US" placeholder="Phone" value={form.phone} onChange={v => handleChange('phone', v)} className="border rounded p-3 w-full" />
             <input type="number" placeholder="Age" value={form.age} onChange={e => handleChange('age', e.target.value)} className="border rounded p-3 w-full" />
-
             <label className="block">
               <span className="text-sm font-semibold">Pickup?</span>
               <select value={form.pickupOption} onChange={e => handleChange('pickupOption', e.target.value)} className="border rounded p-2 w-full">
@@ -153,7 +193,6 @@ export default function Booking() {
                 <option value="yes">Yes</option>
               </select>
             </label>
-
             {form.pickupOption === 'yes' && (
               <>
                 <select value={form.pickupLocation} onChange={e => handleChange('pickupLocation', e.target.value)} className="border rounded p-3 w-full">
@@ -166,17 +205,26 @@ export default function Booking() {
                 <input type="time" value={form.dropoffTime} onChange={e => handleChange('dropoffTime', e.target.value)} className="border rounded p-3 w-full" />
               </>
             )}
-
             <textarea placeholder="Additional Notes" value={form.notes} onChange={e => handleChange('notes', e.target.value)} className="border rounded p-3 w-full" />
-
-            <button type="submit" className="w-full bg-[#1D3A6C] text-white py-3 rounded hover:bg-[#163059] transition">
-              {form.startDate && form.endDate
+            <button
+              type="submit"
+              disabled={loading || !settings.minimumRentalDays}
+              className={`w-full py-3 rounded transition ${
+                loading || !settings.minimumRentalDays
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-[#1D3A6C] hover:bg-[#163059]'
+              } text-white`}
+            >
+              {!settings.minimumRentalDays
+                ? 'Loading settings…'
+                : loading
+                ? 'Redirecting to Stripe…'
+                : form.startDate && form.endDate
                 ? `Pay €${(settings.dailyRate * rentalDays).toFixed(2)}`
                 : 'Proceed to Payment'}
             </button>
           </form>
         </div>
-
         <div className="flex items-center justify-center">
           <div>
             <h3 className="text-xl font-semibold mb-4 text-center">Select Dates</h3>

@@ -1,6 +1,6 @@
+// src/pages/Admin.jsx
 import React, { useEffect, useState } from 'react';
-import axios from 'axios'; // for public requests
-import authAxios from '../lib/authAxios'; // for authenticated requests
+import authAxios from '../lib/authAxios';
 import { useAuth } from '../context/AuthContext';
 import { parseISO, isBefore, isAfter, isEqual } from 'date-fns';
 
@@ -11,27 +11,25 @@ export default function Admin() {
   const [fleetSize, setFleetSize] = useState(3);
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [sortByDateAsc, setSortByDateAsc] = useState(null);
 
   const today = new Date();
 
-  // — fetch all bookings (public) —
   useEffect(() => {
+    if (!token) return;
     (async () => {
       try {
-        const { data } = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/bookings`);
+        const { data } = await authAxios.get('/bookings');
         setBookings(data);
       } catch (err) {
         console.error('Failed to fetch bookings:', err);
-        setError(err.message);
       } finally {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [token]);
 
-  // — fetch settings (admin only) —
   useEffect(() => {
     if (!token) return;
     (async () => {
@@ -46,27 +44,10 @@ export default function Admin() {
     })();
   }, [token]);
 
-  // — save settings —
-  const handleSaveSettings = async () => {
-    try {
-      const { data } = await authAxios.put('/settings', {
-        dailyRate,
-        minimumRentalDays: minDays,
-        fleetSize
-      });
-      setDailyRate(data.dailyRate);
-      setMinDays(data.minimumRentalDays);
-      setFleetSize(data.fleetSize);
-      alert('Settings updated successfully');
-    } catch (err) {
-      console.error('Save settings failed:', err);
-      alert('Failed to save settings: ' + (err.response?.data || err.message));
-    }
-  };
-
-  // — cancel booking —
   const cancelBooking = async (id) => {
     if (!token) return alert('Admin login required');
+    const confirm = window.confirm("Are you sure you want to cancel this booking?\n\nThe customer will receive a 50% refund.");
+    if (!confirm) return;
     try {
       await authAxios.put(`/bookings/${id}/cancel`);
       setBookings(bs => bs.map(b => b.id === id ? { ...b, bookingStatus: 'CANCELLED' } : b));
@@ -76,9 +57,10 @@ export default function Admin() {
     }
   };
 
-  // — delete booking —
   const deleteBooking = async (id) => {
     if (!token) return alert('Admin login required');
+    const confirm = window.confirm("Are you sure you want to permanently delete this booking?");
+    if (!confirm) return;
     try {
       await authAxios.delete(`/bookings/${id}`);
       setBookings(bs => bs.filter(b => b.id !== id));
@@ -88,18 +70,24 @@ export default function Admin() {
     }
   };
 
-  const closeModal = () => setSelectedBooking(null);
-
-  // — compute metrics —
   const total = bookings.length;
   const cancelled = bookings.filter(b => b.bookingStatus === 'CANCELLED').length;
-  const active = bookings.filter(b => {
+  const activeBookings = bookings.filter(b => {
     if (b.bookingStatus !== 'CONFIRMED') return false;
     const start = parseISO(b.startDate);
     const end = parseISO(b.endDate);
     return (isBefore(start, today) || isEqual(start, today)) &&
             (isAfter(end, today) || isEqual(end, today));
-  }).length;
+  });
+
+  const closeModal = () => setSelectedBooking(null);
+
+  const sortedBookings = [...bookings].sort((a, b) => {
+    if (sortByDateAsc === null) return a.id - b.id;
+    const aDate = new Date(a.startDate);
+    const bDate = new Date(b.startDate);
+    return sortByDateAsc ? aDate - bDate : bDate - aDate;
+  });
 
   return (
     <div className="pt-28 px-6 pb-12 min-h-screen bg-gray-50 text-black font-sans">
@@ -108,13 +96,12 @@ export default function Admin() {
           Admin Dashboard
         </h1>
 
-        {/* Top metrics */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
           {[
-            { label: 'Total Bookings',     value: total,     icon: '📅' },
-            { label: 'Active Bookings',    value: active,    icon: '✔️' },
+            { label: 'Total Bookings', value: total, icon: '📅' },
+            { label: 'Active Bookings', value: activeBookings.length, icon: '✔️' },
             { label: 'Cancelled Bookings', value: cancelled, icon: '❌' },
-            { label: 'Settings', value: `€${dailyRate} / ${minDays}d / ${fleetSize ?? '–'} cars`, icon: '⚙️' },
+            { label: 'Settings', value: `€${dailyRate} / ${minDays}d / ${fleetSize} cars`, icon: '⚙️' },
           ].map(m => (
             <div key={m.label} className="bg-white border p-4 rounded-lg text-center shadow-sm">
               <div className="text-sm text-gray-600">{m.icon} {m.label}</div>
@@ -123,140 +110,91 @@ export default function Admin() {
           ))}
         </div>
 
-        {/* Active bookings list */}
         <div className="mt-8 border rounded-lg p-5 bg-white shadow-sm">
           <h2 className="text-xl font-semibold mb-3">Active Bookings</h2>
-          {loading
-            ? <p>Loading…</p>
-            : active === 0
-              ? <p className="text-gray-600">No active bookings right now.</p>
-              : (
-                <ul className="list-disc pl-5 space-y-1">
-                  {bookings.filter(b => b.bookingStatus === 'CONFIRMED').map(b => (
-                    <li key={b.id}>
-                      <strong>#{b.id}</strong> — {b.fullName} ({b.startDate} → {b.endDate})
-                    </li>
-                  ))}
-                </ul>
-              )
-          }
+          {loading ? <p>Loading…</p> :
+            activeBookings.length === 0 ? <p className="text-gray-600">No active bookings.</p> :
+              <ul className="list-disc pl-5 space-y-1">
+                {activeBookings.map(b => (
+                  <li key={b.id} className="cursor-pointer hover:underline" onClick={() => setSelectedBooking(b)}>
+                    <strong>#{b.id}</strong> — {b.fullName} ({b.startDate} → {b.endDate})
+                  </li>
+                ))}
+              </ul>}
         </div>
 
-        {/* Settings form */}
         <div className="mt-10 border rounded-lg p-5 bg-white shadow-sm">
           <h2 className="text-xl font-semibold mb-4">Settings</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Daily Rate (€)
-              </label>
-              <input
-                type="number"
-                value={dailyRate}
-                onChange={e => setDailyRate(Number(e.target.value))}
-                className="w-full border p-2 rounded"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Min. Rental Days
-              </label>
-              <input
-                type="number"
-                value={minDays}
-                onChange={e => setMinDays(Number(e.target.value))}
-                className="w-full border p-2 rounded"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-600 mb-1">
-                Fleet Size (Cars Per Day)
-              </label>
-              <input
-                type="number"
-                value={fleetSize}
-                onChange={e => setFleetSize(Number(e.target.value))}
-                className="w-full border p-2 rounded"
-              />
-            </div>
+            <input type="number" className="border p-2 rounded" value={dailyRate} onChange={e => setDailyRate(+e.target.value)} placeholder="Daily Rate (€)" />
+            <input type="number" className="border p-2 rounded" value={minDays} onChange={e => setMinDays(+e.target.value)} placeholder="Min. Days" />
+            <input type="number" className="border p-2 rounded" value={fleetSize} onChange={e => setFleetSize(+e.target.value)} placeholder="Fleet Size" />
           </div>
           <button
-            onClick={handleSaveSettings}
+            onClick={async () => {
+              try {
+                const { data } = await authAxios.put('/settings', {
+                  dailyRate,
+                  minimumRentalDays: minDays,
+                  fleetSize
+                });
+                setDailyRate(data.dailyRate);
+                setMinDays(data.minimumRentalDays);
+                setFleetSize(data.fleetSize);
+                alert('Settings updated successfully');
+              } catch (err) {
+                console.error('Save settings failed:', err);
+                alert('Failed to save settings: ' + (err.response?.data || err.message));
+              }
+            }}
             className="bg-[#1D3A6C] text-white px-6 py-2 rounded hover:bg-[#163059] transition"
           >
             Save Settings
           </button>
         </div>
 
-        {/* Full bookings table */}
         <div className="mt-10 border rounded-lg p-5 bg-white shadow-sm">
-          <h2 className="text-xl font-semibold mb-4">Bookings</h2>
-          {loading
-            ? <p className="text-center text-gray-600">Loading bookings...</p>
-            : error
-              ? <p className="text-center text-red-500">{error}</p>
-              : (
-                <table className="w-full text-sm border-collapse">
-                  <thead>
-                    <tr className="border-b bg-gray-100 text-left">
-                      {['ID','Name','Email','Dates','Status','Action'].map(h => (
-                        <th key={h} className="p-3">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bookings.map(b => (
-                      <tr
-                        key={b.id}
-                        className="border-b hover:bg-gray-50 cursor-pointer"
-                        onClick={() => setSelectedBooking(b)}
-                      >
-                        <td className="p-3">#{b.id}</td>
-                        <td className="p-3">{b.fullName}</td>
-                        <td className="p-3">{b.email}</td>
-                        <td className="p-3">{b.startDate} → {b.endDate}</td>
-                        <td className="p-3">{b.bookingStatus}</td>
-                        <td className="p-3 space-x-2">
-                          {b.bookingStatus === 'CONFIRMED' ? (
-                            <button
-                              onClick={e => { e.stopPropagation(); cancelBooking(b.id); }}
-                              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                            >
-                              Cancel
-                            </button>
-                          ) : (
-                            <button
-                              onClick={e => { e.stopPropagation(); deleteBooking(b.id); }}
-                              className="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-600"
-                            >
-                              Delete
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )
-          }
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Bookings</h2>
+            <button onClick={() => setSortByDateAsc(prev => prev === null ? true : !prev)} className="text-sm bg-gray-200 px-3 py-1 rounded hover:bg-gray-300">
+              {sortByDateAsc === null ? "Sorted by ID" : `Sort by Start Date ${sortByDateAsc ? '↑' : '↓'}`}
+            </button>
+          </div>
+          {loading ? <p>Loading…</p> : (
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b bg-gray-100 text-left">
+                  {['ID', 'Name', 'Email', 'Dates', 'Status', 'Action'].map(h => (
+                    <th key={h} className="p-3">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {sortedBookings.map(b => (
+                  <tr key={b.id} className="border-b hover:bg-gray-50 cursor-pointer" onClick={() => setSelectedBooking(b)}>
+                    <td className="p-3">#{b.id}</td>
+                    <td className="p-3">{b.fullName}</td>
+                    <td className="p-3">{b.email}</td>
+                    <td className="p-3">{b.startDate} → {b.endDate}</td>
+                    <td className="p-3">{b.bookingStatus}</td>
+                    <td className="p-3 space-x-2">
+                      {b.bookingStatus === 'CONFIRMED' ? (
+                        <button onClick={e => { e.stopPropagation(); cancelBooking(b.id); }} className="bg-red-500 text-white px-3 py-1 rounded">Cancel</button>
+                      ) : (
+                        <button onClick={e => { e.stopPropagation(); deleteBooking(b.id); }} className="bg-gray-500 text-white px-3 py-1 rounded">Delete</button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
-        {/* Details modal */}
         {selectedBooking && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
-            onClick={closeModal}
-          >
-            <div
-              className="bg-white p-6 rounded-lg max-w-md w-full relative"
-              onClick={e => e.stopPropagation()}
-            >
-              <button
-                onClick={closeModal}
-                className="absolute top-2 right-2 text-gray-600 hover:text-gray-900"
-              >
-                ✕
-              </button>
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50" onClick={closeModal}>
+            <div className="bg-white p-6 rounded-lg max-w-md w-full relative" onClick={e => e.stopPropagation()}>
+              <button onClick={closeModal} className="absolute top-2 right-2">✕</button>
               <h2 className="text-xl font-bold mb-4">Booking Details</h2>
               <p><strong>ID:</strong> {selectedBooking.id}</p>
               <p><strong>Name:</strong> {selectedBooking.fullName}</p>
@@ -264,12 +202,10 @@ export default function Admin() {
               <p><strong>Phone:</strong> {selectedBooking.phone}</p>
               <p><strong>Dates:</strong> {selectedBooking.startDate} → {selectedBooking.endDate}</p>
               <p><strong>Status:</strong> {selectedBooking.bookingStatus}</p>
-              {selectedBooking.paymentAmount != null && (
-                <p><strong>Total:</strong> €{selectedBooking.paymentAmount}</p>
-              )}
+              {selectedBooking.paymentAmount && <p><strong>Total:</strong> €{selectedBooking.paymentAmount}</p>}
               {selectedBooking.airportPickup && (
                 <>
-                  <p><strong>Pickup Location:</strong> {selectedBooking.pickupLocation}</p>
+                  <p><strong>Pickup:</strong> {selectedBooking.pickupLocation}</p>
                   <p><strong>Pickup Time:</strong> {selectedBooking.pickupTime}</p>
                   <p><strong>Dropoff Time:</strong> {selectedBooking.dropoffTime}</p>
                 </>

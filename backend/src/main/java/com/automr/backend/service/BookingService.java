@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -18,7 +19,7 @@ import java.util.List;
 public class BookingService {
 
     private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
-    private static final int MAX_BOOKINGS_PER_DAY = 3;
+    private static final ZoneId ZONE_ATHENS = ZoneId.of("Europe/Athens");
 
     @Autowired private BookingRepository bookingRepository;
     @Autowired private StripeService stripeService;
@@ -29,51 +30,40 @@ public class BookingService {
     public Booking createBooking(Booking booking) {
         Settings settings = settingsService.getSettings();
 
-        // 1) No past start dates
-        if (booking.getStartDate().isBefore(LocalDate.now())) {
-            throw new IllegalArgumentException("Start date cannot be in the past.");
+        if (booking.getStartDate().isBefore(LocalDate.now(ZONE_ATHENS))) {
+            throw new IllegalArgumentException("Start date must be today or in the future.");
         }
 
-        // 2) Age check
         if (booking.getAge() < 24) {
             throw new IllegalArgumentException("Driver must be at least 24 years old.");
         }
 
-        // 3) Minimum rental days (inclusive)
-        long daysBetween = ChronoUnit.DAYS.between(booking.getStartDate(), booking.getEndDate());
-        long rentalDays = daysBetween + 1;
+        long rentalDays = ChronoUnit.DAYS.between(booking.getStartDate(), booking.getEndDate()) + 1;
         if (rentalDays < settings.getMinimumRentalDays()) {
-            throw new IllegalArgumentException(
-                "Minimum rental period is " + settings.getMinimumRentalDays() + " days.");
+            throw new IllegalArgumentException("Minimum rental period is " + settings.getMinimumRentalDays() + " days.");
         }
 
-        // 4) Availability
-        long overlapping = bookingRepository
-            .countByStartDateLessThanEqualAndEndDateGreaterThanEqual(
-                booking.getEndDate(), booking.getStartDate());
-        if (overlapping >= MAX_BOOKINGS_PER_DAY) {
+        long overlapping = bookingRepository.countByStartDateLessThanEqualAndEndDateGreaterThanEqual(
+            booking.getEndDate(), booking.getStartDate()
+        );
+        if (overlapping >= settings.getFleetSize()) {
             throw new IllegalStateException("No cars available for the selected dates.");
         }
 
-        // 5) Pickup-details conditional validation
         if (Boolean.TRUE.equals(booking.getAirportPickup())) {
-            if (booking.getPickupLocation() == null
-                || booking.getPickupTime()     == null
-                || booking.getDropoffTime()    == null) {
-                throw new IllegalArgumentException(
-                    "Pickup location and times must be provided when airportPickup is true.");
+            if (booking.getPickupLocation() == null ||
+                booking.getPickupTime() == null ||
+                booking.getDropoffTime() == null) {
+                throw new IllegalArgumentException("Pickup location and times must be provided for airport pickup.");
             }
         }
 
-        // 6) Compute payment
         int totalAmount = (int) rentalDays * settings.getDailyRate();
         booking.setPaymentAmount(totalAmount);
 
-        // 7) Stripe PaymentIntent
         if (booking.getPaymentIntentId() == null) {
             try {
-                var intent = stripeService
-                    .createPaymentIntent(totalAmount, "AutoMR Booking: " + rentalDays + " days");
+                var intent = stripeService.createPaymentIntent(totalAmount, "AutoMR Booking: " + rentalDays + " days");
                 booking.setPaymentIntentId(intent.getId());
             } catch (Exception e) {
                 logger.error("Stripe payment failed: {}", e.getMessage());
@@ -81,23 +71,11 @@ public class BookingService {
             }
         }
 
-        // 8) Persist
+        booking.setPaymentStatus("PENDING");
         Booking saved = bookingRepository.save(booking);
-        logger.info("Booking created: id={}, name={}, amount={}€",
-            saved.getId(), saved.getFullName(), saved.getPaymentAmount());
+        logger.info("Booking created: id={}, name={}, amount={}€", saved.getId(), saved.getFullName(), saved.getPaymentAmount());
 
-        // 9) Confirmation email
-        emailService.sendBookingConfirmation(
-            saved.getEmail(),
-            "Booking Confirmation - AutoMR",
-            "Dear " + saved.getFullName() + ",\n\n" +
-            "Your booking from " + saved.getStartDate() +
-            " to " + saved.getEndDate() +
-            " (" + rentalDays + " days) has been confirmed.\n\n" +
-            "Total: €" + saved.getPaymentAmount() +
-            "\n\nThank you,\nThe AutoMR Team"
-        );
-
+        emailService.sendBookingConfirmationEmail(saved, rentalDays);
         return saved;
     }
 
@@ -115,35 +93,26 @@ public class BookingService {
             throw new IllegalStateException("Booking is already cancelled.");
         }
 
-        // refund 50%, if paid
-        if (booking.getPaymentIntentId() != null) {
+        if (booking.getPaymentIntentId() != null && "PAID".equalsIgnoreCase(booking.getPaymentStatus())) {
             try {
                 int refundAmount = booking.getPaymentAmount() / 2;
                 stripeService.refundPartial(booking.getPaymentIntentId(), refundAmount);
-                logger.info("Booking cancelled: id={}, refunded={}€",
-                    bookingId, refundAmount);
+                logger.info("Refunded 50%% for booking id={}, amount={}€", bookingId, refundAmount);
             } catch (Exception e) {
-                logger.error("Refund failed for booking id={}: {}",
-                    bookingId, e.getMessage());
+                logger.error("Refund failed for booking id={}: {}", bookingId, e.getMessage());
                 throw new RuntimeException("Refund failed: " + e.getMessage());
             }
         }
 
         booking.setBookingStatus(BookingStatus.CANCELLED);
+        booking.setPaymentStatus("REFUNDED");
         Booking updated = bookingRepository.save(booking);
 
-        emailService.sendBookingConfirmation(
-            updated.getEmail(),
-            "Booking Cancellation - AutoMR",
-            "Dear " + updated.getFullName() + ",\n\n" +
-            "Your booking from " + updated.getStartDate() +
-            " to " + updated.getEndDate() + " has been cancelled." +
-            (updated.getPaymentIntentId() != null
-                ? "\n\nWe have refunded 50%: €" + (updated.getPaymentAmount()/2)
-                : "\n\nNo payment to refund.") +
-            "\n\nThank you,\nThe AutoMR Team"
-        );
+        String refundInfo = booking.getPaymentIntentId() != null
+                ? "50% refund issued: €" + (booking.getPaymentAmount() / 2)
+                : "No payment to refund.";
 
+        emailService.sendBookingCancellationEmail(updated, refundInfo);
         return updated;
     }
 
@@ -161,7 +130,10 @@ public class BookingService {
         Booking existing = bookingRepository.findById(bookingId)
             .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
 
-        // copy allowed fields
+        if (existing.getBookingStatus() == BookingStatus.CANCELLED) {
+            throw new IllegalStateException("Cannot update a cancelled booking.");
+        }
+
         existing.setFullName(updatedBooking.getFullName());
         existing.setEmail(updatedBooking.getEmail());
         existing.setPhone(updatedBooking.getPhone());
@@ -174,8 +146,7 @@ public class BookingService {
         existing.setDropoffTime(updatedBooking.getDropoffTime());
 
         Booking saved = bookingRepository.save(existing);
-        logger.info("Booking updated: id={}, newStart={}, newEnd={}",
-            bookingId, saved.getStartDate(), saved.getEndDate());
+        logger.info("Booking updated: id={}, start={}, end={}", bookingId, saved.getStartDate(), saved.getEndDate());
 
         return saved;
     }
@@ -183,9 +154,9 @@ public class BookingService {
     @Transactional
     public Booking createBookingAdmin(Booking booking) {
         booking.setBookingStatus(BookingStatus.CONFIRMED);
+        booking.setPaymentStatus("MANUAL");
         Booking saved = bookingRepository.save(booking);
-        logger.info("Admin created booking: id={}, name={}",
-            saved.getId(), saved.getFullName());
+        logger.info("Admin created booking: id={}, name={}", saved.getId(), saved.getFullName());
         return saved;
     }
 }

@@ -2,6 +2,9 @@ package com.automr.backend.controller;
 
 import com.automr.backend.model.Settings;
 import com.automr.backend.service.SettingsService;
+
+import jakarta.annotation.security.PermitAll;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +17,7 @@ public class SettingsController {
     @Autowired
     private SettingsService settingsService;
 
+    @PermitAll
     @GetMapping
     public ResponseEntity<Settings> getSettings() {
         return ResponseEntity.ok(settingsService.getSettings());
@@ -21,11 +25,7 @@ public class SettingsController {
 
     @PutMapping
     public ResponseEntity<Settings> updateSettings(@RequestBody Settings updatedSettings) {
-        // applies your two‐step update logic
-        settingsService.updateDailyRate(updatedSettings.getDailyRate());
-        settingsService.updateMinimumRentalDays(updatedSettings.getMinimumRentalDays());
-        settingsService.updateFleetSize(updatedSettings.getFleetSize());
-        // then return the refreshed singleton
-        return ResponseEntity.ok(settingsService.getSettings());
+        Settings savedSettings = settingsService.updateSettings(updatedSettings);
+        return ResponseEntity.ok(savedSettings);
     }
 }

@@ -1,9 +1,11 @@
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import heroBg from '../assets/hero.jpg';
 
 export default function PremiumPlan() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const features1 = t('premiumPlan.features1', { returnObjects: true });
   const features2 = t('premiumPlan.features2', { returnObjects: true });
@@ -20,6 +22,7 @@ export default function PremiumPlan() {
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
+          onClick={() => navigate('/booking')}
           className="mt-6 px-8 py-3 bg-white text-black font-bold rounded-full shadow hover:bg-black hover:text-white transition-all"
         >
           {t('button.book')}

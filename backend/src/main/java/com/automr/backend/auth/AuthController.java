@@ -5,6 +5,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -13,28 +15,27 @@ public class AuthController {
 
     private final AuthenticationManager authManager;
     private final JwtUtil jwtUtil;
+    private final UserDetailsService userDetailsService;
 
-    
-    public AuthController(AuthenticationManager authManager, JwtUtil jwtUtil) {
+    public AuthController(AuthenticationManager authManager, JwtUtil jwtUtil, UserDetailsService userDetailsService) {
         this.authManager = authManager;
-        this.jwtUtil      = jwtUtil;
+        this.jwtUtil = jwtUtil;
+        this.userDetailsService = userDetailsService;
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
         try {
-            // will throw if bad creds
             authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                    req.getUsername(), req.getPassword()
-                )
+                new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword())
             );
-            String token = jwtUtil.generateToken(req.getUsername());
+
+            UserDetails userDetails = userDetailsService.loadUserByUsername(req.getUsername());
+            String token = jwtUtil.generateToken(userDetails);
+
             return ResponseEntity.ok(new LoginResponse(token));
         } catch (AuthenticationException ex) {
-            return ResponseEntity
-                .status(401)
-                .body("Invalid username or password");
+            return ResponseEntity.status(401).body("Invalid username or password");
         }
     }
 }

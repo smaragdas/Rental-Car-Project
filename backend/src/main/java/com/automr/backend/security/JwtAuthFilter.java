@@ -24,53 +24,46 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        String method = request.getMethod();
+    
+        boolean skip = path.startsWith("/api/auth") ||
+                        (method.equals("GET") && (path.startsWith("/api/bookings") || path.startsWith("/api/settings"))) ||
+                        path.startsWith("/api/stripe") ||
+                        path.equals("/api/test");
+    
+        System.out.println("[JWT FILTER] Should not filter " + method + " " + path + "? " + skip);
+        return skip;
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
-                                    throws ServletException, IOException {
-
-        String path = request.getRequestURI();
-        String method = request.getMethod();
-
-        System.out.println("[JWT Filter] Incoming " + method + " " + path);
-
-        // ✅ Skip JWT validation for public endpoints
-        if (
-            path.startsWith("/api/auth") ||
-            (method.equals("GET") && path.startsWith("/api/settings")) ||
-            path.startsWith("/api/bookings") ||
-            path.startsWith("/api/stripe/checkout-session")
-        ) {
-            System.out.println("[JWT Filter] Skipping JWT for: " + method + " " + path);
-            filterChain.doFilter(request, response);
-            return;
-        }
+            throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String jwt = authHeader.substring(7);
-            String username = jwtUtil.extractUsername(jwt);
-            System.out.println("[JWT Filter] Token detected, user: " + username);
+        String token = null;
+        String username = null;
 
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                if (jwtUtil.validateToken(jwt, userDetails)) {
-                    var authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities()
-                    );
-                    authToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                    );
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                    System.out.println("[JWT Filter] Token valid, user authenticated.");
-                } else {
-                    System.out.println("[JWT Filter] Invalid JWT token.");
-                }
-            }
-        } else {
-            System.out.println("[JWT Filter] No valid Authorization header.");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+            username = jwtUtil.extractUsername(token);
         }
 
+        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+            if (jwtUtil.validateToken(token, userDetails)) {
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            }
+        }
+        System.out.println("[JWT FILTER] Reached filter for: " + request.getMethod() + " " + request.getRequestURI());
         filterChain.doFilter(request, response);
     }
 }

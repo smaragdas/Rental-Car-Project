@@ -6,45 +6,35 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.NoSuchElementException;
+
 @Service
 public class SettingsService {
 
     @Autowired
     private SettingsRepository settingsRepository;
 
+    private static final Long SETTINGS_ID = 1L;
+
     /**
-     * Always returns the one-and-only settings row (creating it if it doesn't exist).
+     * Always returns the singleton settings row with ID = 1.
+     * Throws if not initialized.
      */
+    @Transactional(readOnly = true)
     public Settings getSettings() {
-        return settingsRepository.findAll().stream()
-            .findFirst()
-            .orElseGet(() -> {
-                Settings defaultSettings = new Settings();
-                defaultSettings.setDailyRate(50);
-                defaultSettings.setMinimumRentalDays(4);
-                defaultSettings.setFleetSize(3);
-                return settingsRepository.save(defaultSettings);
-            });
+        return settingsRepository.findById(SETTINGS_ID)
+            .orElseThrow(() -> new NoSuchElementException("Settings not initialized"));
     }
 
+    /**
+     * Update singleton settings (ID = 1).
+     */
     @Transactional
-    public void updateDailyRate(int newRate) {
+    public Settings updateSettings(Settings updated) {
         Settings s = getSettings();
-        s.setDailyRate(newRate);
-        settingsRepository.save(s);
-    }
-
-    @Transactional
-    public void updateMinimumRentalDays(int newMinDays) {
-        Settings s = getSettings();
-        s.setMinimumRentalDays(newMinDays);
-        settingsRepository.save(s);
-    }
-
-    @Transactional
-    public void updateFleetSize(int newFleetSize) {
-        Settings s = getSettings();
-        s.setFleetSize(newFleetSize);
-        settingsRepository.save(s);
+        s.setDailyRate(updated.getDailyRate());
+        s.setMinimumRentalDays(updated.getMinimumRentalDays());
+        s.setFleetSize(updated.getFleetSize());
+        return settingsRepository.save(s);
     }
 }

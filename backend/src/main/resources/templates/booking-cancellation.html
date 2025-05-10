@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title>Booking Cancellation</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; background-color: #f8f8f8; padding: 20px;">
+        <div style="background-color: #fff; padding: 20px; border-radius: 6px; max-width: 600px; margin: auto;">
+            <h2 style="color: #B00020;">Booking Cancelled - AutoMR</h2>
+            <p>Dear <strong th:text="${fullName}">Customer Name</strong>,</p>
+            <p>We're writing to confirm that your booking has been cancelled.</p>
+
+            <ul>
+                <li><strong>Start Date:</strong> <span th:text="${startDate}">start</span></li>
+                <li><strong>End Date:</strong> <span th:text="${endDate}">end</span></li>
+                <li><strong>Status:</strong> <span th:text="${status}">CANCELLED</span></li>
+            </ul>
+
+            <p th:if="${refundInfo != null}" th:text="${refundInfo}">Refund details here.</p>
+            <p th:unless="${refundInfo != null}">No payment to refund.</p>
+
+            <p>If this was a mistake or you have any questions, please contact our support team.</p>
+
+            <p style="color: #999;">AutoMR Car Rentals</p>
+        </div>
+    </body>
+</html>

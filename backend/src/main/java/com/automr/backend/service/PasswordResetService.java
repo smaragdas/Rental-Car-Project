@@ -1,25 +1,30 @@
 package com.automr.backend.service;
 
+import com.automr.backend.model.PasswordResetToken;
+import com.automr.backend.repository.PasswordResetTokenRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.time.Duration;
-import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
+import java.time.Instant;
+import java.util.UUID;
 
 @Service
 public class PasswordResetService {
 
-    private record CodeInfo(String code, Instant expiresAt) {}
+    private static final Logger logger = LoggerFactory.getLogger(PasswordResetService.class);
 
-    private static final String ADMIN_EMAIL = "automr.mercedes21@gmail.com";
+    @Value("${spring.mail.username}")
+    private String adminEmail;
 
-    private final Map<String, CodeInfo> codes = new ConcurrentHashMap<>();
+    @Value("${admin.username}")
+    private String adminUsername;
 
     @Autowired
     private EmailService emailService;
@@ -27,40 +32,54 @@ public class PasswordResetService {
     @Autowired
     private InMemoryUserDetailsManager userDetailsService;
 
+    @Autowired
+    private PasswordResetTokenRepository tokenRepository;
+
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    public void generateAndSendResetCode(String email) {
-        if (!email.equalsIgnoreCase(ADMIN_EMAIL)) {
+    public void generateAndSendResetToken(String email) {
+        if (!email.trim().equalsIgnoreCase(adminEmail.trim())) {
             throw new IllegalArgumentException("Unauthorized email address.");
         }
 
-        String code = String.format("%06d", new Random().nextInt(999999));
-        codes.put(email, new CodeInfo(code, Instant.now().plus(Duration.ofMinutes(15))));
+        // Invalidate previous tokens
+        tokenRepository.deleteByEmail(email);
 
-        String body = "Your password reset code is: " + code + "\nIt expires in 15 minutes.";
-        emailService.sendBookingConfirmation(email, "Password Reset Code", body);
+        String token = UUID.randomUUID().toString();
+        Instant expiresAt = Instant.now().plus(Duration.ofMinutes(15));
+
+        PasswordResetToken resetToken = new PasswordResetToken();
+        resetToken.setEmail(email);
+        resetToken.setToken(token);
+        resetToken.setExpiresAt(expiresAt);
+        tokenRepository.save(resetToken);
+
+        logger.info("✅ Password reset token generated for {}", email);
+
+        // Use Thymeleaf template for email
+        emailService.sendPasswordResetToken(email, token);
     }
 
-    public void verifyCodeAndChangePassword(String email, String code, String newPassword) {
-        if (!email.equalsIgnoreCase(ADMIN_EMAIL)) {
-            throw new IllegalArgumentException("Unauthorized email address.");
+    public void verifyTokenAndChangePassword(String email, String token, String newPassword) {
+        PasswordResetToken resetToken = tokenRepository.findByToken(token)
+            .orElseThrow(() -> new IllegalArgumentException("Invalid reset token."));
+
+        if (!resetToken.getEmail().equalsIgnoreCase(email)) {
+            throw new IllegalArgumentException("Token does not match email.");
         }
 
-        CodeInfo info = codes.get(email);
-        if (info == null || Instant.now().isAfter(info.expiresAt())) {
-            throw new IllegalArgumentException("Reset code expired or not found");
+        if (Instant.now().isAfter(resetToken.getExpiresAt())) {
+            throw new IllegalArgumentException("Reset token has expired.");
         }
 
-        if (!info.code().equals(code)) {
-            throw new IllegalArgumentException("Invalid reset code");
-        }
-
-        var user = userDetailsService.loadUserByUsername("admin");
-        var updated = User.withUserDetails(user)
+        var user = userDetailsService.loadUserByUsername(adminUsername);
+        var updatedUser = User.withUserDetails(user)
                 .password(passwordEncoder.encode(newPassword))
                 .build();
-        userDetailsService.updateUser(updated);
+        userDetailsService.updateUser(updatedUser);
 
-        codes.remove(email); // Invalidate the used code
+        logger.info("✅ Admin password updated for {}", adminUsername);
+
+        tokenRepository.delete(resetToken);
     }
 }

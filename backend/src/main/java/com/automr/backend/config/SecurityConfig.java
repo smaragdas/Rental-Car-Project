@@ -2,6 +2,7 @@ package com.automr.backend.config;
 
 import com.automr.backend.security.JwtAuthFilter;
 import com.automr.backend.security.JwtUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,10 +23,13 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+
 @Configuration
+@EnableMethodSecurity(jsr250Enabled = true)
+
 public class SecurityConfig {
 
     @Value("${admin.username}")
@@ -35,7 +39,7 @@ public class SecurityConfig {
     private String adminPassword;
 
     @Bean
-    public InMemoryUserDetailsManager userDetailsService(PasswordEncoder encoder) {
+    public UserDetailsService userDetailsService(PasswordEncoder encoder) {
         UserDetails admin = User.builder()
             .username(adminUsername)
             .password(encoder.encode(adminPassword))
@@ -54,16 +58,14 @@ public class SecurityConfig {
             UserDetailsService uds,
             PasswordEncoder encoder
     ) {
-        DaoAuthenticationProvider p = new DaoAuthenticationProvider();
-        p.setUserDetailsService(uds);
-        p.setPasswordEncoder(encoder);
-        return p;
+        var provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(uds);
+        provider.setPasswordEncoder(encoder);
+        return provider;
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration config
-    ) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
@@ -80,26 +82,42 @@ public class SecurityConfig {
     ) throws Exception {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(cs -> cs.disable())
-            .exceptionHandling(ex -> ex
-                .accessDeniedHandler((req, res, excep) -> {
-                    System.out.println("[SECURITY] Access denied: " + req.getRequestURI());
-                    res.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
-                })
-            )
+            .csrf(csrf -> csrf.disable())
+            .exceptionHandling(ex -> ex.accessDeniedHandler(
+                (req, res, excep) ->
+                    res.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied")
+            ))
             .authenticationProvider(authProvider)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
+
+                // Preflight
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                // Public Auth
                 .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
+
+                // Public Settings (GET only)
+                .requestMatchers(HttpMethod.GET, "/api/settings", "/api/settings/**").permitAll()
+
+                // Public Bookings
+                .requestMatchers(HttpMethod.GET, "/api/bookings").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/bookings/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/bookings").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/settings", "/api/settings/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/stripe/checkout-session").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/test").permitAll() // Optional for debug
+
+                // Stripe
+                .requestMatchers("/api/stripe/**").permitAll()
+
+                // Health check
+                .requestMatchers(HttpMethod.GET, "/api/test").permitAll()
+                .requestMatchers(HttpMethod.GET, "/error").permitAll()
+
+                // Admin-only
                 .requestMatchers(HttpMethod.PUT, "/api/settings").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/bookings/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/bookings/**").hasRole("ADMIN")
+
+                // Everything else
                 .anyRequest().authenticated()
             );
 
@@ -108,7 +126,7 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration cfg = new CorsConfiguration();
+        var cfg = new CorsConfiguration();
         cfg.setAllowCredentials(true);
         cfg.setAllowedOrigins(List.of(
             "http://localhost:5173",
@@ -117,8 +135,8 @@ public class SecurityConfig {
         ));
         cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         cfg.setAllowedHeaders(List.of("Content-Type", "Authorization"));
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", cfg);
-        return source;
+        var src = new UrlBasedCorsConfigurationSource();
+        src.registerCorsConfiguration("/**", cfg);
+        return src;
     }
 }
