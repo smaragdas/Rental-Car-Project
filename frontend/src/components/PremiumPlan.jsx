@@ -1,11 +1,14 @@
+import React from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom'; // <-- import navigation
+import { useNavigate } from 'react-router-dom';
+import { useSettings } from '../hooks/useSettings';
 import heroBg from '../assets/hero.jpg';
 
 export default function PremiumPlan() {
   const { t } = useTranslation();
-  const navigate = useNavigate(); // <-- set up navigation
+  const navigate = useNavigate();
+  const { dailyRate } = useSettings();
 
   return (
     <section className="bg-white py-24 px-6 text-center">
@@ -19,7 +22,7 @@ export default function PremiumPlan() {
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => navigate('/booking')} // <-- navigate on click
+          onClick={() => navigate('/booking')}
           className="mt-6 px-8 py-3 bg-white text-black font-bold rounded-full shadow hover:bg-black hover:text-white transition-all"
         >
           {t('button.book')} →
@@ -37,9 +40,12 @@ export default function PremiumPlan() {
           />
           <div className="relative z-10 bg-black/60 backdrop-blur-sm rounded-2xl p-10 text-white text-center">
             <div className="mb-10">
-              <h3 className="text-4xl font-extrabold mb-2">
-                {t('premiumPlan.price')}
-              </h3>
+-              <h3 className="text-4xl font-extrabold mb-2">
+-                {t('premiumPlan.price')}
+-              </h3>
++              <h3 className="text-4xl font-extrabold mb-2">
++                {t('premiumPlan.price', { dailyRate })}
++              </h3>
               <p className="text-gray-300 max-w-xl mx-auto text-sm leading-relaxed">
                 {t('premiumPlan.description')}
               </p>

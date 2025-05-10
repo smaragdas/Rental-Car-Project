@@ -24,7 +24,7 @@
       "cleanTitle": "Cleanliness:",
       "clean": "Excessive dirt or interior damage will result in a cleaning or repair fee.",
       "minRentalTitle": "Minimum Rental Period:",
-      "minRental": "The minimum rental period is 2 days.",
+      "minRental": "The minimum rental period is {{minRentalDays}} days.",
       "fuelTitle": "Fuel Policy:",
       "fuel": "Vehicles are delivered with a full tank and must be returned full. Fuel charges will apply otherwise.",
       "smokePetsTitle": "Smoking & Pets:",
@@ -73,7 +73,7 @@
   "premiumPlan": {
     "title": "Premium Plan",
     "subtitle": "Arrive in Style with the Mercedes-Benz E200",
-    "price": "50€ /per day",
+    "price": "{{dailyRate}}€ /per day",
     "description": "Experience comfort, elegance, and convenience with our premium car rental services, featuring the luxurious 2020 Mercedes-Benz E200 – the perfect companion for any occasion.",
     "included": "What’s included",
     "features1": [
