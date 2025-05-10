@@ -1,15 +1,3 @@
-<<<<<<< HEAD
-// src/pages/ThankYou.jsx
-export default function ThankYou() {
-    return (
-      <div className="p-8 text-center">
-        <h2 className="text-3xl font-bold text-green-700">Thank You!</h2>
-        <p className="mt-4 text-lg">Your booking has been confirmed.</p>
-      </div>
-    );
-  }
-  
-=======
 import React, { useEffect, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -66,4 +54,3 @@ export default function ThankYouPage() {
     </motion.section>
   );
 }
->>>>>>> f75c3fea7c71f3b4390d4e28c1757205d2af77cd

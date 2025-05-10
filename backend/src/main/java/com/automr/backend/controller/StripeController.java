@@ -1,6 +1,5 @@
 package com.automr.backend.controller;
 
-import com.automr.backend.model.Booking;
 import com.automr.backend.model.BookingStatus;
 import com.automr.backend.repository.BookingRepository;
 import com.automr.backend.service.EmailService;

@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-FROM node:20-alpine
-WORKDIR /app
-COPY . .
-RUN npm install && npm run build
-RUN npm install -g serve
-CMD ["serve", "-s", "dist"]
-=======
 # Stage 1: Build the React app
 FROM node:20-alpine AS builder
 WORKDIR /app
@@ -38,4 +30,3 @@ RUN npm install -g serve
 # Expose port 80 and start serving
 EXPOSE 80
 CMD ["serve", "-s", "dist", "-l", "80"]
->>>>>>> f75c3fea7c71f3b4390d4e28c1757205d2af77cd

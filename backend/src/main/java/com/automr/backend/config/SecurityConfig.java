@@ -18,13 +18,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-<<<<<<< HEAD
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-=======
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -33,7 +26,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
->>>>>>> f75c3fea7c71f3b4390d4e28c1757205d2af77cd
 
 @Configuration
 @EnableMethodSecurity(jsr250Enabled = true)
@@ -98,15 +90,6 @@ public class SecurityConfig {
             .authenticationProvider(authProvider)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
-<<<<<<< HEAD
-                .requestMatchers("/api/bookings", "/api/bookings/").permitAll() // only the exact booking POST
-                .requestMatchers("/api/bookings/admin").hasRole("ADMIN")        // allow admin creation
-                .requestMatchers("/api/bookings/**").hasRole("ADMIN")           // allow edit/delete/cancel
-                .requestMatchers("/api/settings/**").hasRole("ADMIN")
-                .anyRequest().authenticated()
-            )
-            .httpBasic(httpBasic -> {}); // uses HTTP Basic auth
-=======
 
                 // Preflight
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -137,27 +120,10 @@ public class SecurityConfig {
                 // Everything else
                 .anyRequest().authenticated()
             );
->>>>>>> f75c3fea7c71f3b4390d4e28c1757205d2af77cd
 
         return http.build();
     }
 
-<<<<<<< HEAD
-    // In-memory admin credentials (you can later use a DB)
-    @Bean
-    public InMemoryUserDetailsManager userDetailsService(PasswordEncoder passwordEncoder) {
-        UserDetails admin = User.builder()
-            .username("admin")
-            .password(passwordEncoder.encode("admin123"))  // hashed password
-            .roles("ADMIN")
-            .build();
-        return new InMemoryUserDetailsManager(admin);
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-=======
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         var cfg = new CorsConfiguration();
@@ -172,6 +138,5 @@ public class SecurityConfig {
         var src = new UrlBasedCorsConfigurationSource();
         src.registerCorsConfiguration("/**", cfg);
         return src;
->>>>>>> f75c3fea7c71f3b4390d4e28c1757205d2af77cd
     }
 }

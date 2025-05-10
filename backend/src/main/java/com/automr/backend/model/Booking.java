@@ -7,7 +7,6 @@ import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 
-import com.automr.backend.validation.ValidPhone;
 
 @Entity
 public class Booking {
@@ -39,10 +38,7 @@ public class Booking {
     @Min(value = 24, message = "Driver must be at least 24 years old")
     private Integer age;
 
-<<<<<<< HEAD
-=======
     @Column(nullable = true)
->>>>>>> f75c3fea7c71f3b4390d4e28c1757205d2af77cd
     private Integer paymentAmount;
 
     private String pickupLocation;
@@ -54,25 +50,11 @@ public class Booking {
     private Boolean airportPickup;
 
     @Enumerated(EnumType.STRING)
-<<<<<<< HEAD
-=======
     @Column(nullable = true, columnDefinition = "varchar(255) default 'CONFIRMED'")
->>>>>>> f75c3fea7c71f3b4390d4e28c1757205d2af77cd
     private BookingStatus bookingStatus = BookingStatus.CONFIRMED;
 
     private String paymentIntentId;
 
-<<<<<<< HEAD
-    public Booking() {}
-
-    // Custom validation logic
-    public boolean isValidRentalPeriod() {
-        if (startDate != null && endDate != null) {
-            long days = ChronoUnit.DAYS.between(startDate, endDate);
-            return days >= 4;
-        }
-        return false;
-=======
     @Column(nullable = false)
     private String paymentStatus = "PENDING";
 
@@ -83,7 +65,6 @@ public class Booking {
     @AssertTrue(message = "Start date must be today or in the future")
     public boolean isStartDateValid() {
         return startDate != null && !startDate.isBefore(LocalDate.now());
->>>>>>> f75c3fea7c71f3b4390d4e28c1757205d2af77cd
     }
 
     // ───── Getters and Setters ───────────────
@@ -195,8 +176,6 @@ public class Booking {
     public void setPaymentIntentId(String paymentIntentId) {
         this.paymentIntentId = paymentIntentId;
     }
-<<<<<<< HEAD
-=======
 
     public String getPaymentStatus() {
         return paymentStatus;
@@ -205,5 +184,4 @@ public class Booking {
     public void setPaymentStatus(String paymentStatus) {
         this.paymentStatus = paymentStatus;
     }
->>>>>>> f75c3fea7c71f3b4390d4e28c1757205d2af77cd
 }

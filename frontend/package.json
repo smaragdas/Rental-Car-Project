@@ -13,24 +13,17 @@
     "axios": "^1.9.0",
     "framer-motion": "^12.9.2",
     "i18next": "^25.0.2",
-<<<<<<< HEAD
-=======
     "libphonenumber-js": "^1.10.19",
->>>>>>> f75c3fea7c71f3b4390d4e28c1757205d2af77cd
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-i18next": "^15.5.1",
     "react-icons": "^5.5.0",
-<<<<<<< HEAD
-    "react-router-dom": "^7.5.3"
-=======
     "react-phone-number-input": "^3.2.18",
     "react-router-dom": "^7.5.3",
     "react-day-picker": "^8.0.0",
     "@stripe/stripe-js": "^2.2.0",
     "@stripe/react-stripe-js": "^2.5.0",
     "date-fns": "^2.30.0"
->>>>>>> f75c3fea7c71f3b4390d4e28c1757205d2af77cd
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
@@ -46,8 +39,4 @@
     "tailwindcss": "^3.4.1",
     "vite": "^6.3.1"
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> f75c3fea7c71f3b4390d4e28c1757205d2af77cd

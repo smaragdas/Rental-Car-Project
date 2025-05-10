@@ -82,18 +82,12 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
-<<<<<<< HEAD
-        <!-- Google’s libphonenumber library for phone number validation -->
-=======
         <!-- libphonenumber -->
->>>>>>> f75c3fea7c71f3b4390d4e28c1757205d2af77cd
         <dependency>
             <groupId>com.googlecode.libphonenumber</groupId>
             <artifactId>libphonenumber</artifactId>
             <version>8.13.29</version>
         </dependency>
-<<<<<<< HEAD
-=======
 
         <!-- JWT Dependencies -->
         <dependency>
@@ -125,7 +119,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
->>>>>>> f75c3fea7c71f3b4390d4e28c1757205d2af77cd
     </dependencies>
 
     <build>

@@ -1,46 +1,11 @@
-<<<<<<< HEAD
-import { Routes, Route } from 'react-router-dom';
-=======
 // src/App.jsx
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
->>>>>>> f75c3fea7c71f3b4390d4e28c1757205d2af77cd
 import Home from './pages/Home';
 import Contact from './pages/Contact';
 import Booking from './pages/Booking';
 import Admin from './pages/Admin';
 import ThankYou from './pages/ThankYou';
-<<<<<<< HEAD
-import Header from './components/Header';
-import Footer from './components/Footer';
-import './i18n';
-
-
-
-<Route path="/" element={<Home />} />
-
-
-
-export default function App() {
-  return (
-    <div className="flex flex-col min-h-screen bg-black text-white">
-      <Header />
-      <main className="flex-grow">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/booking" element={<Booking />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/thank-you" element={<ThankYou />} />
-        </Routes>
-      </main>
-      <Footer />
-    </div>
-  );
-}
-
-
-=======
 import LoginPage from './pages/LoginPage';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -88,4 +53,3 @@ export default function App() {
     </AuthProvider>
   );
 }
->>>>>>> f75c3fea7c71f3b4390d4e28c1757205d2af77cd
