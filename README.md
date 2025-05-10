@@ -54,7 +54,7 @@ Together they deliver a seamless user experience for customers and admins alike.
 ```
 =======
 
-# 🚗 AutoMR – Car Rental Booking Platform
+# 🚗 AutoMR – Car Rental Booking Platform!
 
 Welcome to **AutoMR**, a modern and responsive car rental web platform built by [Konstantinos Smaragdas](https://github.com/smaragdas) and [Ioannis Xypteras](https://github.com/JohnXyp)!  
 This project was designed to be a user-friendly, secure, and scalable solution for managing car rental bookings online.
