@@ -48,7 +48,7 @@ jobs:
 
       - name: Build and test backend
         working-directory: backend
-        run: mvn clean verify -DskipTests=false
+        run: mvn clean verify -DskipTests
 
       - name: Build Docker images
         run: |
