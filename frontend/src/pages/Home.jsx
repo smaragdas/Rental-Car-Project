@@ -30,7 +30,7 @@ export default function Home() {
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
       >
-        <div className="absolute inset-0 bg-black/50 transition-all duration-700" />
+        <div className="absolute inset-0 bg-black/20 transition-all duration-700" />
 
         <div className="relative z-10 flex flex-col justify-center h-full px-8 max-w-7xl mx-auto text-center items-center">
           <motion.h1
