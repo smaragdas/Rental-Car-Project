@@ -29,7 +29,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 
 @Configuration
 @EnableMethodSecurity(jsr250Enabled = true)
-
 public class SecurityConfig {
 
     @Value("${admin.username}")
@@ -94,30 +93,31 @@ public class SecurityConfig {
                 // Preflight
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // Public Auth
+                // Actuator endpoints (health and info) should be public for health checks
+                .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/info").permitAll()
+
+                // Public Auth endpoints
                 .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
 
                 // Public Settings (GET only)
                 .requestMatchers(HttpMethod.GET, "/api/settings", "/api/settings/**").permitAll()
 
-                // Public Bookings
-                .requestMatchers(HttpMethod.GET, "/api/bookings").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/bookings/**").permitAll()
+                // Public Bookings endpoints
+                .requestMatchers(HttpMethod.GET, "/api/bookings", "/api/bookings/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/bookings").permitAll()
 
-                // Stripe
+                // Stripe webhook/public paths
                 .requestMatchers("/api/stripe/**").permitAll()
 
-                // Health check
-                .requestMatchers(HttpMethod.GET, "/api/test").permitAll()
-                .requestMatchers(HttpMethod.GET, "/error").permitAll()
+                // Other public or error/test endpoints
+                .requestMatchers(HttpMethod.GET, "/api/test", "/error").permitAll()
 
-                // Admin-only
+                // Admin-only operations
                 .requestMatchers(HttpMethod.PUT, "/api/settings").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/bookings/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/bookings/**").hasRole("ADMIN")
 
-                // Everything else
+                // All other requests require authentication
                 .anyRequest().authenticated()
             );
 
