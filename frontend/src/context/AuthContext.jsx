@@ -1,41 +1,37 @@
 // src/context/AuthContext.jsx
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import publicAxios from '../lib/publicAxios';
-import jwtDecode from 'jwt-decode';
+import decodeJwt from '../lib/decodeJwt';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  // Initialize auth state from localStorage
     const [auth, setAuth] = useState(() => {
         const jwt = localStorage.getItem('jwt');
         if (!jwt) return { token: null, expiresAt: null };
         try {
-        const { exp } = jwtDecode(jwt);
+        const { exp } = decodeJwt(jwt);
         return { token: jwt, expiresAt: exp * 1000 };
         } catch {
         return { token: null, expiresAt: null };
         }
     });
 
-    const { token, expiresAt } = auth; // destructure for dependencies
+    const { token, expiresAt } = auth;
 
-    // Login: fetch token, store, and decode expiry
     const login = async (username, password) => {
         const res = await publicAxios.post('/auth/login', { username, password });
         const jwt = res.data.token;
-        const { exp } = jwtDecode(jwt);
+        const { exp } = decodeJwt(jwt);
         localStorage.setItem('jwt', jwt);
         setAuth({ token: jwt, expiresAt: exp * 1000 });
     };
 
-    // Logout: clear token and state
     const logout = useCallback(() => {
         localStorage.removeItem('jwt');
         setAuth({ token: null, expiresAt: null });
     }, []);
 
-    // Auto-logout when token or expiry change
     useEffect(() => {
         if (!token || !expiresAt) return;
         const now = Date.now();
